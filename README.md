@@ -24,24 +24,24 @@ Our implementation is inspired by the following repositories:
 
 First, clone this repository and navigate to the project directory:
 
-\`\`\`bash
+```bash
 git clone <repository_url>
 cd CGLE
-\`\`\`
+```
 
 ### Running Experiments
 
 - To reproduce **NCNC**:
-  \`\`\`bash
+  ```bash
   sh ncnc_run.sh
-  \`\`\`
+  ```
 
 - To reproduce **CGLE**:
-  \`\`\`bash
+  ```bash
   sh cgle.sh
-  \`\`\`
+  ```
 
 - To reproduce **CGLE with k-means**:
-  \`\`\`bash
+  ```bash
   sh cgle_kmeans.sh
-  \`\`\`
+  ```
