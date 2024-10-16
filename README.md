@@ -43,5 +43,5 @@ cd CGLE
 
 - To reproduce **CGLE with k-means**:
   ```bash
-  sh cgle_kmeans.sh
+  sh cgle_k-means.sh
   ```
