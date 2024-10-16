@@ -1,6 +1,4 @@
 
-# CGLE: Common Graph Learning Experiments
-
 **Latest Setup:**
 - Python: 3.10.14
 - PyTorch: 2.3.1 (CUDA: 12.1)
