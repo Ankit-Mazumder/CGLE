@@ -24,12 +24,6 @@ Experiments were conducted using NVIDIA A100 (80GB) and NVIDIA V100 GPUs.
 2. **Other Datasets**:  
    We used datasets from [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/2.6.0/modules/datasets.html).
 
-## Acknowledgments
-
-This implementation was inspired by the following repositories:
-- [HeaRT](https://github.com/Juanhui28/HeaRT.git)
-- [Neural Common Neighbor](https://github.com/GraphPKU/NeuralCommonNeighbor.git)
-
 ## Getting Started
 
 Clone the repository and navigate to the project directory:
@@ -55,3 +49,11 @@ cd CGLE
   ```bash
   sh cgle_k-means.sh
   ```
+
+
+  ## Acknowledgments
+
+This implementation was inspired by the following repositories:
+- [HeaRT](https://github.com/Juanhui28/HeaRT.git)
+- [Neural Common Neighbor](https://github.com/GraphPKU/NeuralCommonNeighbor.git)
+
