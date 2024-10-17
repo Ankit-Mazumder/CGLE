@@ -1,28 +1,38 @@
+## Latest Setup
 
-**Latest Setup:**
-- Python: 3.10.14
-- PyTorch: 2.3.1 (CUDA: 12.1)
-- PyTorch Geometric: 2.5.3
-- OGB: 1.3.6
+- **Python**: 3.10.14  
+- **PyTorch**: 2.3.1 (CUDA 12.1)  
+- **PyTorch Geometric**: 2.5.3  
+- **OGB**: 1.3.6  
 
 **Hardware:**  
-Experiments were conducted using NVIDIA A100 80GB and NVIDIA V100 GPUs.
+Experiments were conducted using NVIDIA A100 (80GB) and NVIDIA V100 GPUs.
 
 ## Installation Guide
 
-1. [Install PyTorch](https://pytorch.org/)
-2. [Install PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
-3. [Install OGB](https://ogb.stanford.edu/docs/home/)
+1. Install [PyTorch](https://pytorch.org/).
+2. Install [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
+3. Install [OGB](https://ogb.stanford.edu/docs/home/).
+
+## Datasets
+
+1. **Facebook Page-Page Network**:  
+   We used the dataset from [Facebook Large Page-Page Network](https://snap.stanford.edu/data/facebook-large-page-page-network.html).  
+   Since not all features have the maximum dimension of 31, we concatenated them with zeros to make all node feature dimensions consistent at 31.  
+   The dataset can be found in the `CGLE/datasets/fb_page` directory.
+
+2. **Other Datasets**:  
+   We used datasets from [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/2.6.0/modules/datasets.html).
 
 ## Acknowledgments
 
-Our implementation is inspired by the following repositories:
-1. [HeaRT](https://github.com/Juanhui28/HeaRT.git)
-2. [Neural Common Neighbor](https://github.com/GraphPKU/NeuralCommonNeighbor.git)
+This implementation was inspired by the following repositories:
+- [HeaRT](https://github.com/Juanhui28/HeaRT.git)
+- [Neural Common Neighbor](https://github.com/GraphPKU/NeuralCommonNeighbor.git)
 
 ## Getting Started
 
-First, clone this repository and navigate to the project directory:
+Clone the repository and navigate to the project directory:
 
 ```bash
 git clone <repository_url>
