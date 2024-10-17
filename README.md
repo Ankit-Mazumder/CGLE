@@ -50,8 +50,7 @@ cd CGLE
   sh cgle_k-means.sh
   ```
 
-
-  ## Acknowledgments
+## Acknowledgments
 
 This implementation was inspired by the following repositories:
 - [HeaRT](https://github.com/Juanhui28/HeaRT.git)
