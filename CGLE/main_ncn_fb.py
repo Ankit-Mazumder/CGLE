@@ -886,7 +886,8 @@ def parseargs():
     parser.add_argument('--addon', action='store_true',default=False)
     parser.add_argument('--cluster', action='store_true',default=False)
     parser.add_argument('--k_means', type=int,default=10)
-    
+    parser.add_argument('--concat_label', action='store_true',default=False)
+
     args = parser.parse_args()
     return args
 
@@ -948,8 +949,30 @@ def main():
                 else:
                     df=pd.read_csv('datasets/fb_page/musae_facebook_target.csv')
                     data_dict=get_fb_prob(df,split_edge)
+                    print("Hi")
+            if args.concat_label:
+                
+                # Convert page_type to one hot encoding
+                if not args.cluster:
+                    df=pd.read_csv('datasets/fb_page/musae_facebook_target.csv')
+                    one_hot_encoded = pd.get_dummies(df['page_type'])
+                    #one_hot_encoded = pd.get_dummies(df['page_type'])
+
+                    data.y = torch.tensor(one_hot_encoded.values, dtype=torch.float)
+
+                    #data.y=one_hot_encoded
+
+                # # Convert the one-hot encoded DataFrame to torch tensor and store in data.y
+                # data.y = torch.tensor(one_hot_encoded.values, dtype=torch.float)
+                print("Original shape of data.x (node features):", data.x.shape)
+                data.x = torch.cat([data.x, data.y], dim=1)
+                data_dict=None
+                # one_hot_labels = torch.nn.functional.one_hot(data.y, num_classes=data.y.max().item() + 1).float()
+                # data.x = torch.cat([data.x, one_hot_labels], dim=1)
+                    
+                print("New shape of data.x (features + labels):", data.x.shape)
         else:
-            print("Run the other file")
+            print("Run the other file: main_ncn.py")
             exit(0)
         
         # Check original shapes of features and labels
