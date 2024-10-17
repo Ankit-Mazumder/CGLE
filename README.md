@@ -39,6 +39,10 @@ cd CGLE
   ```bash
   sh ncnc_run.sh
   ```
+- To reproduce **NCNC ⊕ Class labels**:
+  ```bash
+  sh ncnc_concat_y.sh
+  ```
 
 - To reproduce **CGLE**:
   ```bash
