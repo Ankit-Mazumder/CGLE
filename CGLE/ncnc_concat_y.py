@@ -17,7 +17,7 @@ from baseline_models.NCN.util import PermIterator
 import time
 # from ogbdataset import loaddataset
 from typing import Iterable
-from torch_geometric.datasets import Planetoid,HeterophilousGraphDataset,Amazon,AttributedGraphDataset,Coauthor,CitationFull
+from torch_geometric.datasets import Planetoid,HeterophilousGraphDataset,Amazon,AttributedGraphDataset,Coauthor,CitationFull,LINKXDataset,Actor,WikipediaNetwork
 from torch_geometric.utils import train_test_split_edges, negative_sampling, to_undirected
 from baseline_models.utils import init_seed, Logger, save_emb, get_logger
 from baseline_models.evalutors import evaluate_hits, evaluate_mrr, evaluate_auc
@@ -396,6 +396,10 @@ def loaddataset(name, use_valedges_as_input, load=None,k=0):
         dataset = HeterophilousGraphDataset(root="datasets", name=name)
     elif name=='DBLP':
         dataset=CitationFull(root='datasets',name=name)
+    elif name=="actor":
+        dataset=Actor(root="datasets")
+    elif name in ["chameleon", "crocodile", "squirrel"]:
+        dataset=WikipediaNetwork(root="datasets",name=name)
     else:
         dataset = Planetoid(root="datasets", name=name)
     data = dataset[0]
