@@ -39,19 +39,36 @@ cd CGLE
   ```bash
   bash ncnc_run.sh
   ```
+- To reproduce **NCN**:
+  ```bash
+  bash ncn_run.sh
+  ```
+
 - To reproduce **NCNC ⊕ Class labels**:
   ```bash
   bash ncnc_concat_y.sh
   ```
-
-- To reproduce **CGLE**:
+- To reproduce **NCN ⊕ Class labels**:
   ```bash
-  bash cgle.sh
+  bash ncn_concat_y.sh
   ```
 
-- To reproduce **CGLE with k-means**:
+- To reproduce **CGLE(NCNC)**:
   ```bash
-  bash cgle_k-means.sh
+  bash cgle_ncnc.sh
+  ```
+- To reproduce **CGLE(NCN)**:
+  ```bash
+  bash cgle_ncn.sh
+  ```
+
+- To reproduce **CGLE(NCNC) with k-means**:
+  ```bash
+  bash cgle_ncnc_k-means.sh
+  ```
+- To reproduce **CGLE(NCN) with k-means**:
+  ```bash
+  bash cgle_ncn_k-means.sh
   ```
 
 ## Acknowledgments
