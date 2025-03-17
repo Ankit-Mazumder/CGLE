@@ -569,6 +569,9 @@ class CNLinkPredictor(nn.Module):
                                  nn.Dropout(dropout, inplace=True) if twolayerlin else nn.Identity(),
                                  nn.ReLU(inplace=True) if twolayerlin else nn.Identity(),
                                  nn.Linear(hidden_channels, out_channels))
+        self.mylin = nn.Sequential(nn.LazyLinear(3), # magic numbers, provide as params later
+                                   nn.ReLU(inplace=True),
+                                   nn.Linear(3, 3))
         
 
     def multidomainforward(self,
@@ -584,23 +587,45 @@ class CNLinkPredictor(nn.Module):
         cn = adjoverlap(adj, adj, tar_ei, filled1, cnsampledeg=self.cndeg)
         xcns = [spmm_add(cn, x)]
         xij = self.xijlin(xi * xj)
-        
-        if self.no_cn:
-            # print('no cn')
-            xs = torch.cat(
-            [self.lin(xij) for xcn in xcns],
-            dim=-1)
-        else:
-            xs = torch.cat(
-                [self.lin(self.xcnlin(xcn) * self.beta + xij) for xcn in xcns],
+
+        if self.no_cn: 
+
+            
+            print('no cn')
+
+            if additional is not None:
+                l=[self.lin2(torch.cat((self.lin(xij), self.mylin(additional)), dim=-1)) for xcn in xcns]
+                xs = torch.cat(l,dim=-1)
+            else:
+                xs = torch.cat(
+                [self.lin(xij) for xcn in xcns],
                 dim=-1)
+        else:
+            if additional is not None:
+                l=[self.lin2(torch.cat((self.xcnlin(xcn) * self.beta + xij, self.mylin(additional)), dim=-1)) for xcn in xcns]
+                xs = torch.cat(l,dim=-1)
+            else:
+                xs = torch.cat(
+                    [self.lin(self.xcnlin(xcn) * self.beta + xij) for xcn in xcns],
+                    dim=-1)
+        
+        # if self.no_cn:
+        #     # print('no cn')
+        #     xs = torch.cat(
+        #     [self.lin(xij) for xcn in xcns],
+        #     dim=-1)
+        # else:
+        #     xs = torch.cat(
+        #         [self.lin(self.xcnlin(xcn) * self.beta + xij) for xcn in xcns],
+        #         dim=-1)
         
         
         return xs
         
 
     def forward(self, x, adj, tar_ei, filled1: bool = False,additional_features=None):
-        return self.multidomainforward(x, adj, tar_ei, filled1, [])
+        #return self.multidomainforward(x, adj, tar_ei, filled1, [])
+        return self.multidomainforward(x, adj, tar_ei, filled1, [],additional=additional_features)
 
 
 class CN0LinkPredictor(nn.Module):
@@ -789,8 +814,16 @@ class IncompleteCN1Predictor(CNLinkPredictor):
             else:
                 probcn1 = self.clampprob(probcn1, self.pt)
                 probcn2 = self.clampprob(probcn2, self.pt)
+            
+            # print("Hi",probcn1)
+            # print("Hi2",probcn2)
+
             probcn1 = probcn1 * potcn1[-1]
             probcn2 = probcn2 * potcn2[-1]
+
+            # print("Hi",probcn1)
+            # print("Hi2",probcn2)
+
             cnres1.set_value_(probcn1, layout="coo")
             cnres2.set_value_(probcn2, layout="coo")
             xcn1 = spmm_add(cnres1, x)
