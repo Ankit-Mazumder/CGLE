@@ -934,6 +934,9 @@ def main():
         if args.dataset=='fb':
             data, split_edge= loaddataset(args.dataset, args.use_valedges_as_input)
             
+            df=pd.read_csv('datasets/fb_page/musae_facebook_target.csv')
+            data_dict=get_fb_prob(df,split_edge)
+            
             if args.addon:
                 if args.cluster:
                         cluster_labels = get_cluster_labels(split_edge, data, k=args.k_means, max_iters=100)
