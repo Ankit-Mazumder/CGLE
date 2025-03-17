@@ -17,7 +17,7 @@ from baseline_models.NCN.util import PermIterator
 import time
 # from ogbdataset import loaddataset
 from typing import Iterable
-from torch_geometric.datasets import Planetoid,HeterophilousGraphDataset,Amazon,AttributedGraphDataset,Coauthor,CitationFull
+from torch_geometric.datasets import Planetoid,HeterophilousGraphDataset,Amazon,AttributedGraphDataset,Coauthor,CitationFull,LINKXDataset,Actor,WikipediaNetwork
 from torch_geometric.utils import train_test_split_edges, negative_sampling, to_undirected
 from baseline_models.utils import init_seed, Logger, save_emb, get_logger
 from baseline_models.evalutors import evaluate_hits, evaluate_mrr, evaluate_auc
@@ -25,6 +25,7 @@ from torch_geometric.transforms import RandomLinkSplit
 
 from baseline_models.utils import *
 from collections import Counter
+import matplotlib.pyplot as plt
 
 #log_print = get_logger('testrun', 'log', get_config_dir())
 
@@ -36,6 +37,7 @@ import pandas as pd
 import networkx as nx
 import random
 from torch_geometric.utils import to_dense_adj
+import pandas as pd
 
 import os
 cwd = os.getcwd()
@@ -170,7 +172,37 @@ def get_cluster_labels(split_edge, data, k=10, max_iters=100):
 
         cluster_centers = new_cluster_centers
 
-    return cluster_labels
+    return cluster_labels,normalized_features
+
+def find_optimal_k(split_edge,data,name):
+    ssd = []  # Sum of squared distances
+    k_values = [1,2,5,10,15,20]  # Range of k to test
+
+    for k in k_values:
+        # Get cluster labels
+        cluster_labels,normalized_features = get_cluster_labels(split_edge, data, k=k, max_iters=100)
+
+        # Compute SSD for this k
+        #normalized_features = torch.nn.functional.normalize(data.x, p=2, dim=1)
+        cluster_centers = torch.stack([
+            torch.mean(normalized_features[cluster_labels == i], dim=0)
+            for i in range(k)
+        ])
+        distances = 1 - torch.matmul(normalized_features, cluster_centers.T)
+        ssd.append(torch.sum(distances.min(dim=1).values ** 2).item())
+
+    # Plot the elbow graph
+    plt.figure(figsize=(8, 5))
+    plt.plot(k_values, ssd, marker='o', linestyle='--', color='b')
+    plt.title(name)
+    plt.xlabel("Number of Clusters (k)")
+    plt.ylabel("Sum of Squared Distances (SSD)")
+    plt.xticks(k_values)
+    plt.grid()
+    #plt.show()
+    #plt.grid()
+    plt.savefig("/home/ankit/research/CGLE_code/CGLE/results/plots/"+name+".png", dpi=300, bbox_inches='tight')
+
 
 
 class MyCustomDataset(InMemoryDataset): #for FB Page-Page network
@@ -251,6 +283,8 @@ def get_class_intersection_prob(y, split_edge):
             s += h[i][j]  # Sum the interactions for class i
         for j in h[i]:
             h[i][j] /= s  # Normalize the interaction counts to get probabilities
+
+    
 
     return h
 
@@ -392,10 +426,16 @@ def loaddataset(name, use_valedges_as_input, load=None,k=0):
         dataset=AttributedGraphDataset(root="datasets", name=name)
     elif name in['CS','Physics']:
         dataset=Coauthor(root="datasets",name=name)
-    elif name in ["Roman-empire", "Amazon-ratings","Questions"]:
+    elif name in ["Roman-empire", "Amazon-ratings","Questions","Minesweeper", "Tolokers"]:
         dataset = HeterophilousGraphDataset(root="datasets", name=name)
     elif name=='DBLP':
         dataset=CitationFull(root='datasets',name=name)
+    elif name in ["penn94", "reed98", "amherst41", "cornell5", "johnshopkins55", "genius"]:
+        dataset=LINKXDataset(root='datasets', name=name)
+    elif name=="actor":
+        dataset=Actor(root="datasets")
+    elif name in ["chameleon", "crocodile", "squirrel"]:
+        dataset=WikipediaNetwork(root="datasets",name=name)
     else:
         dataset = Planetoid(root="datasets", name=name)
     data = dataset[0]
@@ -441,6 +481,8 @@ def loaddataset(name, use_valedges_as_input, load=None,k=0):
 
 def get_metric_score(evaluator_hit, evaluator_mrr, pos_train_pred, pos_val_pred, neg_val_pred, pos_test_pred, neg_test_pred):
 
+    #print(pos_test_pred)
+
     result = {}
     k_list = [1, 3, 10, 100]
     result_hit_train = evaluate_hits(evaluator_hit, pos_train_pred, neg_val_pred, k_list)
@@ -473,6 +515,8 @@ def get_metric_score(evaluator_hit, evaluator_mrr, pos_train_pred, pos_val_pred,
     test_true = torch.cat([torch.ones(pos_test_pred.size(0), dtype=int), 
                             torch.zeros(neg_test_pred.size(0), dtype=int)])
 
+    # print(train_pred)
+    # print(train_true)
     result_auc_train = evaluate_auc(train_pred, train_true)
     result_auc_val = evaluate_auc(val_pred, val_true)
     result_auc_test = evaluate_auc(test_pred, test_true)
@@ -573,7 +617,7 @@ def train(model,
 
 @torch.no_grad()
 def test(model, predictor, data, split_edge,  evaluator_hit, evaluator_mrr, batch_size,
-         use_valedges_as_input,addon,df=None,data_dict={}):#conn,avg_degree_embeddings,hidden_channel,avg_degree_embeddings2):
+         use_valedges_as_input,addon,df=None,data_dict={},flag=0,name=None):#conn,avg_degree_embeddings,hidden_channel,avg_degree_embeddings2):
     model.eval()
     predictor.eval()
 
@@ -596,6 +640,7 @@ def test(model, predictor, data, split_edge,  evaluator_hit, evaluator_mrr, batc
     ],
                                dim=0)
 
+    #print(pos_valid_pred)
 
     neg_valid_pred = torch.cat([
         predictor(h, adj, neg_valid_edge[perm].t(),
@@ -639,6 +684,61 @@ def test(model, predictor, data, split_edge,  evaluator_hit, evaluator_mrr, batc
 
     score_emb = [pos_valid_pred.cpu(),neg_valid_pred.cpu(), pos_test_pred.cpu(), neg_test_pred.cpu(), h.cpu()]
 
+    
+    
+    if flag == 1:
+        # Define threshold for classification (adjust as needed)
+        threshold = 0.5  
+
+        # Apply sigmoid to predictions
+        pos_valid_pred = torch.sigmoid(pos_valid_pred)
+        neg_valid_pred = torch.sigmoid(neg_valid_pred)
+        pos_test_pred = torch.sigmoid(pos_test_pred)
+        neg_test_pred = torch.sigmoid(neg_test_pred)
+
+        # Define ground truth labels
+        pos_valid_truth = torch.ones_like(pos_valid_pred)  # 1 for positive edges
+        neg_valid_truth = torch.zeros_like(neg_valid_pred)  # 0 for negative edges
+        pos_test_truth = torch.ones_like(pos_test_pred)
+        neg_test_truth = torch.zeros_like(neg_test_pred)
+
+        # Create DataFrame for all edges
+        df_all_edges = pd.DataFrame({
+            "Dataset": (["pos_valid"] * len(pos_valid_edge)) + (["neg_valid"] * len(neg_valid_edge)) +
+                    (["pos_test"] * len(pos_test_edge)) + (["neg_test"] * len(neg_test_edge)),
+
+            "Edge_Start": ([edge[0].item() for edge in pos_valid_edge] +
+                        [edge[0].item() for edge in neg_valid_edge] +
+                        [edge[0].item() for edge in pos_test_edge] +
+                        [edge[0].item() for edge in neg_test_edge]),
+
+            "Edge_End": ([edge[1].item() for edge in pos_valid_edge] +
+                        [edge[1].item() for edge in neg_valid_edge] +
+                        [edge[1].item() for edge in pos_test_edge] +
+                        [edge[1].item() for edge in neg_test_edge]),
+
+            "Prediction": (pos_valid_pred.cpu().numpy().tolist() +
+                        neg_valid_pred.cpu().numpy().tolist() +
+                        pos_test_pred.cpu().numpy().tolist() +
+                        neg_test_pred.cpu().numpy().tolist()),
+
+            "Ground_Truth": (pos_valid_truth.cpu().numpy().tolist() +
+                            neg_valid_truth.cpu().numpy().tolist() +
+                            pos_test_truth.cpu().numpy().tolist() +
+                            neg_test_truth.cpu().numpy().tolist()),
+
+            "Type": (["FN" if pred < threshold else "TP" for pred in pos_valid_pred.cpu().numpy()] +
+                    ["FP" if pred > threshold else "TN" for pred in neg_valid_pred.cpu().numpy()] +
+                    ["FN" if pred < threshold else "TP" for pred in pos_test_pred.cpu().numpy()] +
+                    ["FP" if pred > threshold else "TN" for pred in neg_test_pred.cpu().numpy()])
+        })
+
+        # Save to CSV
+        df_all_edges.to_csv("all_edges/cora/" + "ncn_cgle/run1.csv", index=False)
+
+
+
+    
     return result, score_emb
 
 
@@ -760,17 +860,28 @@ def main():
                 data_dict={}
         else:
             data, split_edge= loaddataset(args.dataset, args.use_valedges_as_input, args.load)
+
+            
+            # find_optimal_k(split_edge, data,args.dataset)
+            # exit()
+
+
             #data.edgeIndex=randomly_remove_edges(data.edge_index,args.components)
             if args.addon:
                 if args.cluster:
                     print("Clustering with K-means with k=",args.k_means)
-                    cluster_labels = get_cluster_labels(split_edge, data, k=args.k_means, max_iters=100)
+                    cluster_labels,_ = get_cluster_labels(split_edge, data, k=args.k_means, max_iters=100)
+                    #print(cluster_labels)
+                    #print(data.y)
                 # Save the cluster labels in data.y if you want
                     data.y = cluster_labels
+                    print(data.y)
 
-                    cluster_distribution = np.bincount(cluster_labels.cpu().numpy())
-                    for cluster_id, count in enumerate(cluster_distribution):
-                        print(f"Cluster {cluster_id}: {count} nodes")
+                    # cluster_distribution = np.bincount(cluster_labels.numpy())
+                    # for cluster_id, count in enumerate(cluster_distribution):
+                    #     print(f"Cluster {cluster_id}: {count} nodes")
+                
+                #print(data.y)
                 data_dict=get_class_intersection_prob(data.y, split_edge)
                 df=None
             else:
@@ -866,7 +977,13 @@ def main():
                     if kill_cnt > args.kill_cnt: 
                         print("Early Stopping!!")
                         break
+            #break
 
+        if args.addon:
+            gbb="addone"
+        else:gbb='none'
+        results, score_emb = test(model, predictor, data, split_edge,  evaluator_hit, evaluator_mrr,
+                                args.testbs, args.use_valedges_as_input,addon=args.addon,df=df,data_dict=data_dict,flag=0,name=args.dataset.lower()+"/"+gbb+"_run_"+str(run)+".csv")
         for key in loggers.keys():
             print(key)
             loggers[key].print_statistics(run)
