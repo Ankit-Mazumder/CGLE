@@ -26,7 +26,7 @@ Below are the key tables summarizing the datasets we used and the link‑predict
 
 ## Link‑Prediction Results on Homophilous Graphs
 
-| Method               | Cora HR\@100 | Citeseer HR\@100 | Pubmed HR\@100 | FB Page‑Page MRR | Facebook HR\@100 | Coauthor‑Physics MRR | DBLP HR\@10 |
+| Method               | Cora (HR\@100) | Citeseer (HR\@100) | Pubmed (HR\@100) | FB Page‑Page (MRR) | Facebook (HR\@100) | Coauthor‑Physics (MRR) | DBLP (HR\@10) |
 | -------------------- | -----------: | ---------------: | -------------: | ---------------: | ---------------: | -------------------: | ----------: |
 | CN                   |        33.92 |            29.79 |          23.13 |            17.85 |            84.38 |                18.57 |        32.8 |
 | AA                   |        39.85 |            35.19 |          27.38 |            22.60 |            88.14 |                22.31 |       21.13 |
@@ -49,7 +49,7 @@ Below are the key tables summarizing the datasets we used and the link‑predict
 
 ## Link‑Prediction Results on Heterophilous Graphs
 
-| Method               | Roman Empire MRR | Amazon‑ratings MRR | Questions HR\@100 |  Chameleon MRR | Actor HR\@100 |
+| Method               | Roman Empire (MRR) | Amazon‑ratings (MRR) | Questions (HR\@100) |  Chameleon (MRR) | Actor (HR\@100) |
 | -------------------- | ---------------: | -----------------: | ----------------: | -------------: | ------------: |
 | NCN                  |       54.29±0.86 |         55.90±7.51 |        62.25±1.75 |     76.79±1.33 |    53.18±1.65 |
 | NCNC                 |      28.23±12.51 |         72.63±6.69 |        62.93±1.73 |     74.75±8.37 |    50.77±3.07 |
